@@ -1,13 +1,16 @@
 "use client"
 
 import { useMemo } from "react"
-import { StyleSheet, View, useWindowDimensions } from "react-native"
+import { StyleSheet, View, useWindowDimensions, Text } from "react-native"
 import { VdoPlayerView } from "vdocipher-rn-bridge"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { isTablet } from "../../../utils/responsive"
 
 interface VideoPlayerProps {
-  embedInfo: any
+  embedInfo: {
+    otp: string
+    playbackInfo: string
+  }
   width?: number
   aspectRatio?: number
   height?: number
@@ -48,6 +51,27 @@ export function VideoPlayer({ embedInfo, width, aspectRatio = 16 / 9, height }: 
     return Math.min(calculatedHeight, maxHeight)
   }, [height, playerWidth, aspectRatio, windowHeight])
 
+  if (!embedInfo || !embedInfo.otp || !embedInfo.playbackInfo) {
+    return (
+      <View
+        style={[
+          styles.wrapper,
+          {
+            paddingTop: top,
+            paddingBottom: bottom,
+            width: playerWidth,
+            height: playerHeight,
+            maxWidth: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          },
+        ]}
+      >
+        <Text style={styles.errorText}>Video not available</Text>
+      </View>
+    )
+  }
+
   return (
     <View
       style={[
@@ -68,16 +92,16 @@ export function VideoPlayer({ embedInfo, width, aspectRatio = 16 / 9, height }: 
         }}
         embedInfo={embedInfo}
         showNativeControls={true}
-        onInitializationSuccess={() => console.log("init success")}
-        onInitializationFailure={(error: any) => console.log("init failure", error)}
-        onLoading={() => console.log("loading")}
-        onLoaded={() => console.log("loaded")}
-        onLoadError={({ errorDescription }: any) => console.log("load error", errorDescription)}
-        onError={({ errorDescription }: any) => console.log("error", errorDescription)}
-        onTracksChanged={() => console.log("tracks changed")}
-        onPlaybackSpeedChanged={(speed: any) => console.log("speed changed to", speed)}
-        onEnterFullscreen={() => console.log("onEnterFullscreen")}
-        onExitFullscreen={() => console.log("onExitFullscreen")}
+        onInitializationSuccess={() => console.log("[VdoCipher] Initialization success")}
+        onInitializationFailure={(error: any) => console.log("[VdoCipher] Initialization failure:", error)}
+        onLoading={() => console.log("[VdoCipher] Loading")}
+        onLoaded={() => console.log("[VdoCipher] Loaded")}
+        onLoadError={({ errorDescription }: any) => console.log("[VdoCipher] Load error:", errorDescription)}
+        onError={({ errorDescription }: any) => console.log("[VdoCipher] Error:", errorDescription)}
+        onTracksChanged={() => console.log("[VdoCipher] Tracks changed")}
+        onPlaybackSpeedChanged={(speed: any) => console.log("[VdoCipher] Speed changed to", speed)}
+        onEnterFullscreen={() => console.log("[VdoCipher] Enter fullscreen")}
+        onExitFullscreen={() => console.log("[VdoCipher] Exit fullscreen")}
       />
     </View>
   )
@@ -91,6 +115,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 14
+    marginLeft: 14,
+  },
+  errorText: {
+    color: "#e11d48",
+    fontSize: 16,
+    textAlign: "center",
   },
 })
