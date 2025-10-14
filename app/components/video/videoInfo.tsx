@@ -38,7 +38,7 @@ export default function VideoInfo({ title, description, otp, playbackInfo }: Vid
               activeOpacity={0.7}
             >
               <Text style={[styles.toggleButtonText, { fontSize: scaleFont(14) }]}>
-                {isExpanded ? "Show Less" : "Show More"}
+                {isExpanded ? "Show Less" : "Show More "}
               </Text>
             </TouchableOpacity>
           )}
