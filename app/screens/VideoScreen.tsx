@@ -9,10 +9,11 @@ import api from "../../core/api/apiService"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useRoute } from "@react-navigation/native"
 import { useScaling } from "../hooks/useScaling"
-import { useImageViewer } from "../hooks/useCarousel"
+import { useImageViewer } from "../hooks/useImageViewer"
 import { ImageViewerModal } from "../components/video/ImageViewerModal"
 import { VideoPlayerSection } from "../components/video/VideoPlayerSection"
 import { ContentSection } from "../components/video/ContentSection"
+import VideoInfo from "../components/video/videoInfo"
 
 const useOrientation = () => {
   const { width, height } = useWindowDimensions()
@@ -73,7 +74,7 @@ export default function VideoScreen() {
   }, [fetchOtp, otp, playbackInfo, error])
 
   const contentImages = useMemo(() => {
-    return (contents || [])
+    const images = (contents || [])
       .filter(
         (item: ContentItem) =>
           item.type === "IMAGE" &&
@@ -81,7 +82,10 @@ export default function VideoScreen() {
           typeof item.downloadUrl === "string" &&
           item.downloadUrl.trim() !== "",
       )
+      .sort((a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0))
       .map((item: ContentItem) => item.downloadUrl!)
+    console.log("VideoScreen contentImages:", images)
+    return images
   }, [contents])
 
   if (loadingOtp) {
@@ -189,6 +193,8 @@ export default function VideoScreen() {
             containerWidth={containerWidth}
             isSplitLayout={isSplitLayout}
           />
+           
+
           <ContentSection
             title={title}
             otp={otp}
