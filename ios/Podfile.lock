@@ -2192,6 +2192,7 @@ PODS:
   - SocketRocket (0.7.1)
   - toolbar-android (0.2.1):
     - React
+  - VdoCipherSDK (1.0.0)
   - VdoFramework (2.8.0)
   - Yoga (0.0.0)
 
@@ -2284,6 +2285,7 @@ DEPENDENCIES:
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "toolbar-android (from `../node_modules/@react-native-community/toolbar-android`)"
+  - VdoCipherSDK (from `./VdoCipherSDK`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2466,6 +2468,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-vector-icons"
   toolbar-android:
     :path: "../node_modules/@react-native-community/toolbar-android"
+  VdoCipherSDK:
+    :path: "./VdoCipherSDK"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2558,9 +2562,10 @@ SPEC CHECKSUMS:
   RNVectorIcons: a61c8928c6a9b36cb66fb98c17ed60591e540fba
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   toolbar-android: 2a73856e98b750d7e71ce4644d3f41cc98211719
+  VdoCipherSDK: 4f541d4b77e73cdb91e2425f604debf560c4879f
   VdoFramework: b94cd34e6f49a72536845f6790b1c6d3b2d28d8f
   Yoga: df4e6df930f6d93d6647c10c61d4d6fe5a694805
 
-PODFILE CHECKSUM: b614b8c8ea7f4ed5b042dbc3e86892719fe7ec84
+PODFILE CHECKSUM: 943cceabede76fcb2a0f16d2f0759ff097f480ee
 
 COCOAPODS: 1.16.2
