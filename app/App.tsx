@@ -7,13 +7,12 @@ import {
   ActivityIndicator,
   StyleSheet,
   Platform,
+  Alert,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import VersionCheck from 'react-native-version-check';
 import { enableScreens } from 'react-native-screens';
-import { ScreenshotProtectionModule } from '../utils/screenshotProtection';
-// Ekranlar
 import NativeControlsScreen from './vdocipher/NativeControlsScreen';
 import JSControlsScreen from './vdocipher/JSControlsScreen';
 import DownloadsScreen from './vdocipher/DownloadsScreen';
@@ -28,6 +27,9 @@ import VideoScreen from './screens/VideoScreen';
 import { RootStackParamList } from '../type';
 import { navigationRef } from '../core/navigationService';
 import { UserProvider } from '../context/UserContext';
+import { ScreenSecurity } from '../utils/OfflineDownloadManager';
+import { NetworkProvider } from '../hooks/NetworkProvider';
+import { useNetwork } from '../hooks/useNetwork';
 
 enableScreens();
 
@@ -48,24 +50,25 @@ const App: React.FC = () => {
   const [checking, setChecking] = useState(true);
   const [needUpdate, setNeedUpdate] = useState(false);
   const [storeUrl, setStoreUrl] = useState('');
+  const [isBlurred, setIsBlurred] = useState(false);
 
-  useEffect(() => {
-    console.log('ScreenshotProtectionModule:', ScreenshotProtectionModule);
-    if (ScreenshotProtectionModule && ScreenshotProtectionModule.toggleScreenshotProtection) {
-      ScreenshotProtectionModule.toggleScreenshotProtection(true)
-        .catch((error) => console.error('Failed to enable screenshot protection:', error));
-    } else {
-      console.error('ScreenshotProtectionModule is not available');
-    }
+  useEffect(() =>{
+    if (Platform.OS === 'ios')  return
+      const captureListener = ScreenSecurity.addScreenCaptureEndedListener((event) =>{
+        console.log('Screen capture ended:', event);
+      })
+    
+      const endListener = ScreenSecurity.addScreenCaptureEndedListener((event) => {
+      console.log('Screen capture ended:', event);
+      setIsBlurred(false);
+    });
+
     return () => {
-      if (ScreenshotProtectionModule && ScreenshotProtectionModule.toggleScreenshotProtection) {
-        ScreenshotProtectionModule.toggleScreenshotProtection(false)
-          .catch((error) => console.error('Failed to disable screenshot protection:', error));
-      }
+      captureListener.remove();
+      endListener.remove();
     };
-  }, []);
-
-  // 📦 Version tekshirish
+  })
+  
   useEffect(() => {
     const checkVersion = async () => {
       try {
@@ -106,6 +109,7 @@ const App: React.FC = () => {
 
   return (
     <UserProvider>
+      <NetworkProvider>
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName="Home">
           <Stack.Screen
@@ -165,6 +169,7 @@ const App: React.FC = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      </NetworkProvider>
     </UserProvider>
   );
 };

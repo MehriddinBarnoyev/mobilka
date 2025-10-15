@@ -1357,6 +1357,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-netinfo (11.4.1):
+    - React-Core
   - react-native-orientation-locker (1.7.0):
     - React-Core
   - react-native-safe-area-context (5.6.1):
@@ -2237,6 +2239,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-in-app-updates (from `../node_modules/react-native-in-app-updates`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-orientation-locker (from `../node_modules/react-native-orientation-locker`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-vdocipher-rn-bridge (from `../node_modules/vdocipher-rn-bridge`)
@@ -2372,6 +2375,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-in-app-updates:
     :path: "../node_modules/react-native-in-app-updates"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-orientation-locker:
     :path: "../node_modules/react-native-orientation-locker"
   react-native-safe-area-context:
@@ -2510,6 +2515,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: ccbeb05302cb0beaa3a8ad11a81254568a3a7105
   React-microtasksnativemodule: 6700c80816adde1b15377c9dac30a7201e8476d2
   react-native-in-app-updates: 52dad4d1dfbd156f313245797ba223614e240b0f
+  react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-orientation-locker: 5819fd23ca89cbac0d736fb4314745f62716d517
   react-native-safe-area-context: 77ac71c6c8c9529a8ba894f5a3a226e621b44649
   react-native-vdocipher-rn-bridge: 72211394dc58c63083746e82265dadfb9bed1ced
@@ -2561,6 +2567,6 @@ SPEC CHECKSUMS:
   VdoFramework: b94cd34e6f49a72536845f6790b1c6d3b2d28d8f
   Yoga: df4e6df930f6d93d6647c10c61d4d6fe5a694805
 
-PODFILE CHECKSUM: b614b8c8ea7f4ed5b042dbc3e86892719fe7ec84
+PODFILE CHECKSUM: da7ed509c6dee9c08e66fbdb126b8208b8fae442
 
 COCOAPODS: 1.16.2

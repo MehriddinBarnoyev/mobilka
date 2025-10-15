@@ -8,12 +8,14 @@ import ScreenHeader from "../components/core/ScreenHeader"
 import api from "../../core/api/apiService"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useRoute } from "@react-navigation/native"
-import { useScaling } from "../hooks/useScaling"
-import { useImageViewer } from "../hooks/useImageViewer"
-import { ImageViewerModal } from "../components/video/ImageViewerModal"
-import { VideoPlayerSection } from "../components/video/VideoPlayerSection"
-import { ContentSection } from "../components/video/ContentSection"
 import VideoInfo from "../components/video/videoInfo"
+import { ContentSection } from "../components/video/content-section"
+import { VideoPlayerSection } from "../components/video/VideoPlayerSection"
+import { ImageViewerModal } from "../components/video/ImageViewerModal"
+import { useScaling } from "../../hooks/useScaling"
+import { useRef } from "react"
+import { Animated } from "react-native"
+import { useImageViewer } from "../../hooks/useImageViewer"
 
 const useOrientation = () => {
   const { width, height } = useWindowDimensions()
@@ -30,7 +32,6 @@ type ContentItem = {
 }
 
 export default function VideoScreen() {
-  const { width } = useWindowDimensions()
   const route = useRoute<NativeStackScreenProps<RootStackParamList, "VideoScreen">["route"]>()
   const { top, bottom, left, right } = useSafeAreaInsets()
   const { id, title, coverImageUrl, expirationDate } = route.params
@@ -40,6 +41,7 @@ export default function VideoScreen() {
   const [playbackInfo, setPlaybackInfo] = useState<any>(null)
   const [loadingOtp, setLoadingOtp] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { width } = useWindowDimensions()
 
   const orientation = useOrientation()
   const { scaleFont, scaleSpacing } = useScaling()

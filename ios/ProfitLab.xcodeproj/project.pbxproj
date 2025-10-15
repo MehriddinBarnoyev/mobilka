@@ -7,23 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		137CD5B72E9FB2830048C900 /* OfflineDownloadModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137CD5B62E9FB2830048C900 /* OfflineDownloadModule.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		55D6B0BCD12054EBB78D48FC /* Pods_ProfitLab.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5D90642E706A44C412B85FB /* Pods_ProfitLab.framework */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		CAA7670130EA639735206EF1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		F2A88309B6A177121F483F47 /* Pods_ProfitLab.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B66450F2E0E0B7ED8555CB3D /* Pods_ProfitLab.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		137CD5B62E9FB2830048C900 /* OfflineDownloadModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDownloadModule.swift; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* ProfitLab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProfitLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ProfitLab/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ProfitLab/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = ProfitLab/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		18D7B2B064748CA7FCD12F02 /* Pods-ProfitLab.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProfitLab.release.xcconfig"; path = "Target Support Files/Pods-ProfitLab/Pods-ProfitLab.release.xcconfig"; sourceTree = "<group>"; };
-		745FF75BFC51BB21EB315E12 /* Pods-ProfitLab.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProfitLab.debug.xcconfig"; path = "Target Support Files/Pods-ProfitLab/Pods-ProfitLab.debug.xcconfig"; sourceTree = "<group>"; };
+		3C852575FC0ECDA26D1D3F4F /* Pods-ProfitLab.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProfitLab.debug.xcconfig"; path = "Target Support Files/Pods-ProfitLab/Pods-ProfitLab.debug.xcconfig"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ProfitLab/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ProfitLab/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		D5D90642E706A44C412B85FB /* Pods_ProfitLab.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ProfitLab.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A191993C436DC9B1B879A5B6 /* Pods-ProfitLab.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProfitLab.release.xcconfig"; path = "Target Support Files/Pods-ProfitLab/Pods-ProfitLab.release.xcconfig"; sourceTree = "<group>"; };
+		B66450F2E0E0B7ED8555CB3D /* Pods_ProfitLab.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ProfitLab.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -32,7 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55D6B0BCD12054EBB78D48FC /* Pods_ProfitLab.framework in Frameworks */,
+				F2A88309B6A177121F483F47 /* Pods_ProfitLab.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -43,6 +45,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
+				137CD5B62E9FB2830048C900 /* OfflineDownloadModule.swift */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
@@ -55,7 +58,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				D5D90642E706A44C412B85FB /* Pods_ProfitLab.framework */,
+				B66450F2E0E0B7ED8555CB3D /* Pods_ProfitLab.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -92,8 +95,8 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				745FF75BFC51BB21EB315E12 /* Pods-ProfitLab.debug.xcconfig */,
-				18D7B2B064748CA7FCD12F02 /* Pods-ProfitLab.release.xcconfig */,
+				3C852575FC0ECDA26D1D3F4F /* Pods-ProfitLab.debug.xcconfig */,
+				A191993C436DC9B1B879A5B6 /* Pods-ProfitLab.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -105,13 +108,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ProfitLab" */;
 			buildPhases = (
-				F7E18D9DE0B8D94656796575 /* [CP] Check Pods Manifest.lock */,
+				836BB2950B6D1C9236DF1B24 /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				26438494B509AEE4AD73AB68 /* [CP] Embed Pods Frameworks */,
-				DF56603F4E0AF133FC60CE2F /* [CP] Copy Pods Resources */,
+				8EFD3FEB82114E59BCFB7AFF /* [CP] Embed Pods Frameworks */,
+				EFD64C951D27F2C627453650 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -183,41 +186,7 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 		};
-		26438494B509AEE4AD73AB68 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		DF56603F4E0AF133FC60CE2F /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		F7E18D9DE0B8D94656796575 /* [CP] Check Pods Manifest.lock */ = {
+		836BB2950B6D1C9236DF1B24 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -239,6 +208,40 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		8EFD3FEB82114E59BCFB7AFF /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EFD64C951D27F2C627453650 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ProfitLab/Pods-ProfitLab-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -247,6 +250,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				137CD5B72E9FB2830048C900 /* OfflineDownloadModule.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,7 +259,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 745FF75BFC51BB21EB315E12 /* Pods-ProfitLab.debug.xcconfig */;
+			baseConfigurationReference = 3C852575FC0ECDA26D1D3F4F /* Pods-ProfitLab.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -284,7 +288,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 18D7B2B064748CA7FCD12F02 /* Pods-ProfitLab.release.xcconfig */;
+			baseConfigurationReference = A191993C436DC9B1B879A5B6 /* Pods-ProfitLab.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
