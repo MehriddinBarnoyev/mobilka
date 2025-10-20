@@ -69,32 +69,32 @@ const App: React.FC = () => {
     };
   })
   
-  useEffect(() => {
-    const checkVersion = async () => {
-      try {
-        const updateNeeded = await VersionCheck.needUpdate({
-          packageName: 'com.assoodiq.devops',
-        });
+  // useEffect(() => {
+  //   const checkVersion = async () => {
+  //     try {
+  //       const updateNeeded = await VersionCheck.needUpdate({
+  //         packageName: 'com.assoodiq.devops',
+  //       });
 
-        if (updateNeeded?.isNeeded) {
-          setNeedUpdate(true);
-          setStoreUrl(
-            Platform.OS === 'android'
-              ? 'https://play.google.com/store/apps/details?id=com.assoodiq.devops'
-              : 'K3YMN933H9.uz.devops.assoodiq',
-          );
-        }
-      } catch (error) {
-        console.log('Version check error:', error);
-      } finally {
-        setChecking(false);
-      }
-    };
+  //       if (updateNeeded?.isNeeded) {
+  //         setNeedUpdate(true);
+  //         setStoreUrl(
+  //           Platform.OS === 'android'
+  //             ? 'https://play.google.com/store/apps/details?id=com.assoodiq.devops'
+  //             : 'K3YMN933H9.uz.devops.assoodiq',
+  //         );
+  //       }
+  //     } catch (error) {
+  //       console.log('Version check error:', error);
+  //     } finally {
+  //       setChecking(false);
+  //     }
+  //   };
 
-    checkVersion();
-  }, []);
+  //   checkVersion();
+  // }, []);
 
-  if (checking) {
+  if (!checking) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#000" />
