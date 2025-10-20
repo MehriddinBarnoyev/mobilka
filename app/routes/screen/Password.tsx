@@ -37,7 +37,7 @@ export default function Password() {
   const [countdown, setCountdown] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [pinCode, setPinCode] = useState<string | null>(null);
+  const [pinCode, setPinCode] = useState<string | null>(null); // <-- faqat bitta pin
   const isConnected = useNetwork();
 
   const { width, height } = useWindowDimensions();
