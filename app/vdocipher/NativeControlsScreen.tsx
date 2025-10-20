@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {StyleSheet, Text, SafeAreaView} from 'react-native';
+import {VdoPlayerView} from 'vdocipher-rn-bridge';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../type';
 

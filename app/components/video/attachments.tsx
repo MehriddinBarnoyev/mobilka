@@ -166,7 +166,10 @@ export function Attachments({ id, onImagePress }: AttachmentsProps) {
           ) : (
             attachments
               .sort((a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0))
-              .map((item, index) => { 
+              .map((item, index) => {
+                if (item.type === "TEXT" && item.textContent) {
+                  return <PlaceholderText key={item.id} text={item.textContent} fontSize={scaleFont(14)} />
+                }
                 if (item.type === "IMAGE" && item.downloadUrl) {
                   return (
                     <TouchableOpacity

@@ -10,23 +10,19 @@ import {
   Platform,
   StyleSheet,
   StatusBar,
-  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSecurity } from '../../../hooks/useSecurity';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../../type';
-import {
-  responsiveWidth as rw,
-  responsiveHeight as rh,
-} from '../../../utils/responsive';
-import { fontScale as fs } from '../../../utils/fontScale';
+import { AxiosError } from 'axios';
 import api from '../../../core/api/apiService';
 import auth from '../../../utils/auth';
-import { AxiosError } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSecurity } from '../../../hooks/useSecurity';
 import { useNetwork } from '../../../hooks/NetworkProvider';
+import { RootStackParamList } from '../../../type';
+import { responsiveWidth as rw, responsiveHeight as rh } from '../../../utils/responsive';
+import { fontScale as fs } from '../../../utils/fontScale';
 
 export default function Password() {
   const [code, setCode] = useState('');
@@ -36,70 +32,60 @@ export default function Password() {
   const [lockTime, setLockTime] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
+  const [pinCode, setPinCode] = useState<string | null>(null);
 
-  const [pinCode, setPinCode] = useState<string | null>(null); // <-- faqat bitta pin
-  const isConnected = useNetwork();
-
-  const { width, height } = useWindowDimensions();
-  const isTablet = width >= 768;
-  const isMobile = width < 600;
-  const isLandscape = width > height;
-
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { isOnline } = useNetwork();
   const { setIsSecured } = useSecurity();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  // 🔹 PIN olish (avval localdan, keyin agar internet bo‘lsa serverdan yangilash)
   useEffect(() => {
-    let cancelled = false;
+    let isMounted = true;
 
     (async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-
-        // 1️⃣ Avvalo localdan o‘qib olamiz
         const localPin = await AsyncStorage.getItem('pinCode');
-        if (localPin && !cancelled) {
-          console.log('[PIN] Localdan olindi:', localPin);
+
+        if (isMounted && localPin) {
           setPinCode(localPin);
+          console.log('[PIN] Local PIN topildi:', localPin);
         }
 
-        // 2️⃣ Agar internet bor bo‘lsa, serverdan yangisini olib kelamiz
-        if (isConnected) {
-          const res = await api.get('/services/userms/api/account');
-          const apiPin = res?.data?.pinCode;
-          console.log('[PIN] Serverdan olindi:', apiPin);
-
-          if (apiPin) {
-            const normalizedPin = String(apiPin).padStart(6, '0');
-            await AsyncStorage.setItem('pinCode', normalizedPin);
-            if (!cancelled) setPinCode(normalizedPin);
-          } else {
-            if (!cancelled) setError('Serverda PIN topilmadi.');
+        if (isOnline) {
+          try {
+            const res = await api.get('/services/userms/api/account');
+            const apiPin = res?.data?.pinCode;
+            if (apiPin && isMounted) {
+              const normalizedPin = String(apiPin).padStart(6, '0');
+              await AsyncStorage.setItem('pinCode', normalizedPin);
+              setPinCode(normalizedPin);
+              console.log('[PIN] Serverdan yangilandi:', normalizedPin);
+            }
+          } catch (err) {
+            console.log('[PIN] Serverdan olishda xato:', err);
           }
-        } else if (!localPin) {
-          if (!cancelled)
-            setError(
-              'Siz offline holatdasiz va PIN hali saqlanmagan. Internetga ulanib qayta urinib ko‘ring.'
-            );
+        } else {
+          if (!localPin) {
+            setError('Offline rejimda PIN mavjud emas. Internetga ulanib qayta urinib ko‘ring.');
+          } else {
+            console.log('[PIN] Offline rejimda local PIN ishlatyapti');
+          }
         }
       } catch (e) {
         if (e instanceof AxiosError && e.response?.status === 401) {
-          auth.removeToken();
+          await auth.removeToken();
           navigation.replace('Home');
-          return;
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     })();
 
     return () => {
-      cancelled = true;
+      isMounted = false;
     };
-  }, [isConnected]);
+  }, [isOnline]);
 
-  // 🔐 PIN tekshirish
   const handleSubmit = async () => {
     if (isLocked || code.length !== 6) return;
 
@@ -122,29 +108,18 @@ export default function Password() {
         setCountdown(60);
         setError('5 marta noto‘g‘ri urinish. 1 daqiqadan so‘ng urinib ko‘ring.');
       } else {
-        setError(`Noto‘g‘ri kod. Urinishlar soni: ${newAttempts}/5`);
+        setError(`Noto‘g‘ri kod. Urinishlar: ${newAttempts}/5`);
       }
       setCode('');
     }
   };
 
-  // 🔙 Orqaga o‘chirish
-  const handleBackspace = () => {
-    if (code.length > 0) {
-      setCode(code.slice(0, -1));
-      setError('');
-    }
-  };
-
-  // 🕒 Blok taymeri
+  // Blok taymeri
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isLocked && lockTime) {
       interval = setInterval(() => {
-        const secondsLeft = Math.max(
-          0,
-          60 - Math.floor((Date.now() - lockTime.getTime()) / 1000)
-        );
+        const secondsLeft = Math.max(0, 60 - Math.floor((Date.now() - lockTime.getTime()) / 1000));
         setCountdown(secondsLeft);
         if (secondsLeft <= 0) {
           setIsLocked(false);
@@ -158,98 +133,68 @@ export default function Password() {
     return () => clearInterval(interval);
   }, [isLocked, lockTime]);
 
-  // render dots
+  const handleNumberPress = (num: string) => {
+    if (isLocked || code.length >= 6) return;
+    setCode(code + num);
+    setError('');
+  };
+
+  const handleBackspace = () => {
+    if (code.length > 0) setCode(code.slice(0, -1));
+  };
+
   const renderDots = () => (
     <View style={styles.dotsContainer}>
-      {Array.from({ length: 6 }).map((_, index) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <View
-          key={index}
+          key={i}
           style={[
             styles.dot,
-            index < code.length ? styles.dotFilled : styles.dotEmpty,
-            {
-              width: isMobile ? rw(4) : rw(3),
-              height: isMobile ? rw(4) : rw(3),
-              borderRadius: isMobile ? rw(2) : rw(1.5),
-            },
+            i < code.length ? styles.dotFilled : styles.dotEmpty,
           ]}
         />
       ))}
     </View>
   );
 
-  // render keypad
   const renderKeypad = () => {
-    const keypadLayout = [
-      ['1', '2', '3'],
-      ['4', '5', '6'],
-      ['7', '8', '9'],
-      ['⌫', '0', 'OK'],
-    ];
-
+    const layout = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['⌫', '0', 'OK']];
     return (
       <View style={styles.keypadContainer}>
-        {keypadLayout.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.keypadRow}>
-            {row.map((key) => {
-              if (key === '⌫') {
-                return (
-                  <TouchableOpacity
-                    key="backspace"
-                    onPress={handleBackspace}
-                    style={styles.keypadButton}
-                    disabled={isLocked}
-                  >
-                    <Text style={styles.keypadIcon}>⌫</Text>
-                  </TouchableOpacity>
-                );
-              } else if (key === 'OK') {
-                return (
-                  <TouchableOpacity
-                    key="ok"
-                    onPress={handleSubmit}
-                    style={[
-                      styles.keypadButton,
-                      {
-                        backgroundColor:
-                          code.length === 6 ? '#007AFF' : '#F2F2F7',
-                      },
-                    ]}
-                    disabled={isLocked || isLoading || code.length !== 6}
-                  >
-                    <Text
-                      style={[
-                        styles.keypadText,
-                        { color: code.length === 6 ? '#fff' : '#000' },
-                      ]}
-                    >
-                      OK
-                    </Text>
-                  </TouchableOpacity>
-                );
-              } else {
-                return (
-                  <TouchableOpacity
-                    key={key}
-                    onPress={() => handleNumberPress(key)}
-                    style={styles.keypadButton}
-                    disabled={isLocked || isLoading}
-                  >
-                    <Text style={styles.keypadText}>{key}</Text>
-                  </TouchableOpacity>
-                );
-              }
-            })}
+        {layout.map((row, i) => (
+          <View key={i} style={styles.keypadRow}>
+            {row.map((key) => (
+              <TouchableOpacity
+                key={key}
+                onPress={
+                  key === '⌫'
+                    ? handleBackspace
+                    : key === 'OK'
+                    ? handleSubmit
+                    : () => handleNumberPress(key)
+                }
+                style={[
+                  styles.keypadButton,
+                  key === 'OK' && {
+                    backgroundColor: code.length === 6 ? '#007AFF' : '#E5E5EA',
+                  },
+                ]}
+                disabled={isLocked || (key === 'OK' && code.length !== 6)}
+              >
+                <Text
+                  style={[
+                    styles.keypadText,
+                    key === 'OK' && { color: code.length === 6 ? '#fff' : '#000' },
+                  ]}
+                >
+                  {key}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         ))}
       </View>
     );
-  };
-
-  const handleNumberPress = (number: string) => {
-    if (isLocked || code.length >= 6) return;
-    setCode(code + number);
-    setError('');
   };
 
   return (
@@ -261,43 +206,32 @@ export default function Password() {
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-          {/* Logout */}
           <TouchableOpacity
             onPress={() => {
               auth.removeToken();
               navigation.replace('Home');
             }}
-            style={[styles.logoutButton, { top: rh(3), right: rw(3) }]}
+            style={styles.logoutButton}
           >
-            <Text style={styles.logoutButtonText}>Chiqish</Text>
+            <Text style={styles.logoutText}>Chiqish</Text>
           </TouchableOpacity>
 
-          <ScrollView
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.infoContainer}>
-              <View style={styles.lockIcon}>
-                <Text style={styles.lockIconText}>🔒</Text>
-              </View>
-              <Text style={styles.title}>Xavfsizlik kodi</Text>
-              <Text style={styles.subtitle}>
-                Iltimos, 6 xonali xavfsizlik kodini kiriting
-              </Text>
+          <ScrollView contentContainerStyle={styles.content}>
+            <Text style={styles.lockIcon}>🔒</Text>
+            <Text style={styles.title}>Xavfsizlik kodi</Text>
+            <Text style={styles.subtitle}>6 xonali PIN kiriting</Text>
 
-              <View style={styles.codeSection}>
-                {renderDots()}
-                {isLoading && <Text>PIN yuklanmoqda…</Text>}
-                {!!error && <Text style={styles.errorText}>{error}</Text>}
-                {isLocked && (
-                  <Text style={styles.errorText}>
-                    Bloklangan. {countdown} soniya kuting.
-                  </Text>
-                )}
-              </View>
-            </View>
+            {isLoading ? (
+              <Text style={styles.infoText}>PIN yuklanmoqda...</Text>
+            ) : !isOnline ? (
+              <Text style={styles.infoText}>Offline rejimda ishlayapsiz</Text>
+            ) : null}
 
-            <View style={styles.keypadWrapper}>{renderKeypad()}</View>
+            {renderDots()}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {isLocked && <Text style={styles.errorText}>Bloklangan {countdown}s</Text>}
+
+            {renderKeypad()}
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -307,59 +241,20 @@ export default function Password() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  content: { flexGrow: 1, padding: rw(5), alignItems: 'center' },
-  infoContainer: { alignItems: 'center' },
-  lockIcon: {
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: rh(2),
-    borderRadius: rw(10),
-    width: rw(20),
-    height: rw(20),
-  },
-  lockIconText: { fontSize: fs(32) },
-  title: {
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: rh(1),
-    textAlign: 'center',
-    fontSize: fs(26),
-  },
-  subtitle: { color: '#8E8E93', textAlign: 'center' },
-  codeSection: { alignItems: 'center', paddingVertical: rh(2) },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: rh(1),
-  },
-  dot: { marginHorizontal: rw(1.5), borderWidth: 2 },
-  dotEmpty: { backgroundColor: 'transparent', borderColor: '#E5E5EA' },
+  content: { flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
+  lockIcon: { fontSize: fs(30), marginBottom: rh(1) },
+  title: { fontWeight: '700', fontSize: fs(22), color: '#000' },
+  subtitle: { color: '#8E8E93', marginBottom: rh(2) },
+  dotsContainer: { flexDirection: 'row', marginVertical: rh(2) },
+  dot: { width: rw(5), height: rw(5), borderRadius: rw(2.5), marginHorizontal: rw(1.5), borderWidth: 2 },
+  dotEmpty: { borderColor: '#E5E5EA' },
   dotFilled: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
   errorText: { color: '#FF3B30', textAlign: 'center', marginTop: rh(1) },
-  keypadWrapper: { marginTop: rh(2), alignItems: 'center' },
-  keypadContainer: { alignItems: 'center' },
+  infoText: { color: '#8E8E93', textAlign: 'center', marginTop: rh(1) },
+  keypadContainer: { marginTop: rh(2), alignItems: 'center' },
   keypadRow: { flexDirection: 'row', marginBottom: rh(2) },
-  keypadButton: {
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: rw(3),
-    width: rw(18),
-    height: rw(18),
-    borderRadius: rw(9),
-  },
-  keypadText: { color: '#000', fontSize: fs(24) },
-  keypadIcon: { color: '#007AFF', fontSize: fs(22) },
-  logoutButton: {
-    position: 'absolute',
-    backgroundColor: '#F2F2F7',
-    borderRadius: rw(5),
-    paddingVertical: rh(1),
-    paddingHorizontal: rw(3),
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 999,
-  },
-  logoutButtonText: { color: '#007AFF', fontWeight: '600' },
+  keypadButton: { width: rw(18), height: rw(18), borderRadius: rw(9), backgroundColor: '#F2F2F7', justifyContent: 'center', alignItems: 'center', marginHorizontal: rw(3) },
+  keypadText: { fontSize: fs(22), color: '#000' },
+  logoutButton: { position: 'absolute', top: rh(3), right: rw(3), backgroundColor: '#F2F2F7', borderRadius: rw(4), paddingHorizontal: rw(4), paddingVertical: rh(1) },
+  logoutText: { color: '#007AFF', fontWeight: '600' },
 });
