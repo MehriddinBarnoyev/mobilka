@@ -47,36 +47,36 @@ const AppContent = () => {
   const [needUpdate, setNeedUpdate] = useState(false);
   const [storeUrl, setStoreUrl] = useState('');
 
-  // useEffect(() => {
-  //   const checkVersion = async () => {
-  //     try {
-  //       if (!isConnected) {
-  //         // If offline, skip version check
-  //         setChecking(false);
-  //         return;
-  //       }
+  useEffect(() => {
+    const checkVersion = async () => {
+      try {
+        if (!isConnected) {
+          // If offline, skip version check
+          setChecking(false);
+          return;
+        }
 
-  //       const updateNeeded = await VersionCheck.needUpdate({
-  //         packageName: 'com.assoodiq.devops',
-  //       });
+        const updateNeeded = await VersionCheck.needUpdate({
+          packageName: 'com.assoodiq.devops',
+        });
 
-  //       if (updateNeeded?.isNeeded) {
-  //         setNeedUpdate(true);
-  //         setStoreUrl(
-  //           Platform.OS === 'android'
-  //             ? 'https://play.google.com/store/apps/details?id=com.assoodiq.devops'
-  //             : 'https://apps.apple.com/app/idYOUR_APP_ID'
-  //         );
-  //       }
-  //     } catch (error) {
-  //       console.log('Version check error:', error);
-  //     } finally {
-  //       setChecking(false);
-  //     }
-  //   };
+        if (updateNeeded?.isNeeded) {
+          setNeedUpdate(true);
+          setStoreUrl(
+            Platform.OS === 'android'
+              ? 'https://play.google.com/store/apps/details?id=com.assoodiq.devops'
+              : 'https://apps.apple.com/app/idYOUR_APP_ID'
+          );
+        }
+      } catch (error) {
+        console.log('Version check error:', error);
+      } finally {
+        setChecking(false);
+      }
+    };
 
-  //   checkVersion();
-  // }, [isConnected]);
+    // checkVersion();
+  }, [isConnected]);
 
   // if (checking) {
   //   return (
@@ -92,6 +92,7 @@ const AppContent = () => {
   }
 
   return (
+    <NetworkProvider>
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={AuthGate} options={{ headerShown: false }} />
@@ -107,6 +108,7 @@ const AppContent = () => {
         <Stack.Screen name="VideoScreen" component={VideoScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
+    </NetworkProvider>
   );
 };
 

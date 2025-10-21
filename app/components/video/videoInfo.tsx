@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { StyleSheet, Text, View, TouchableOpacity, Alert, useWindowDimensions } from "react-native"
+import { StyleSheet, Text, View, TouchableOpacity, Alert, useWindowDimensions, Platform } from "react-native"
 import { VdoDownload } from "vdocipher-rn-bridge"
 import type { DownloadStatus, Track } from "vdocipher-rn-bridge/type"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -233,21 +233,42 @@ function VideoInfo({ title, description, otp, playbackInfo }: VideoInfoProps) {
         </Text>
         <Text style={[styles.meta, { fontSize: scaleFont(isMobile ? 12 : 14) }]}>{description}</Text>
         <View style={{ marginTop: isMobile ? 8 : 10 }}>{renderStatus()}</View>
-        {isDownloadable && (
-          <TouchableOpacity
-            onPress={handleDownload}
-            style={[
-              styles.downloadBtn,
-              {
-                paddingVertical: isMobile ? 8 : 10,
-                width: buttonWidth,
-                alignSelf: "center",
-              },
-            ]}
-          >
-            <Text style={[styles.downloadBtnText, { fontSize: scaleFont(isMobile ? 14 : 16) }]}>Yuklab olish</Text>
-          </TouchableOpacity>
-        )}
+      {isDownloadable && (
+  Platform.OS === "ios" ? (
+    <View
+      style={[
+        styles.downloadBtn,
+        {
+          backgroundColor: "#95a5a6",
+          paddingVertical: isMobile ? 8 : 10,
+          width: buttonWidth,
+          alignSelf: "center",
+        },
+      ]}
+    >
+      <Text style={[styles.downloadBtnText, { fontSize: scaleFont(isMobile ? 14 : 16) }]}>
+        🚧 Coming Soon (iOS)
+      </Text>
+    </View>
+  ) : (
+    <TouchableOpacity
+      onPress={handleDownload}
+      style={[
+        styles.downloadBtn,
+        {
+          paddingVertical: isMobile ? 8 : 10,
+          width: buttonWidth,
+          alignSelf: "center",
+        },
+      ]}
+    >
+      <Text style={[styles.downloadBtnText, { fontSize: scaleFont(isMobile ? 14 : 16) }]}>
+        Yuklab olish
+      </Text>
+    </TouchableOpacity>
+  )
+)}
+
         {downloadStatus?.status === "completed" && (
           <TouchableOpacity
             disabled
