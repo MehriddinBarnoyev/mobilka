@@ -19,6 +19,7 @@ export interface VideoItem {
   coverImgUrl: string;
   users: any[]; // specify more strictly if needed
   eduGroups: any[]; // specify more strictly if needed
+  contents: any[];
 }
 
 export type VideoList = VideoItem[];

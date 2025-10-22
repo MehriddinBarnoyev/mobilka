@@ -77,7 +77,7 @@ export const OfflineBanner: React.FC = () => {
         {/* Icon container with glow effect */}
         <View style={styles.iconContainer}>
           <View style={styles.iconGlow} />
-          <Icon name="cloud-offline" size={28} color="#FFFFFF" />
+          <Icon name="cloud-offline" size={width < 600 ? 24 : 28} color="#FFFFFF" />
         </View>
 
         {/* Text content */}
@@ -91,7 +91,7 @@ export const OfflineBanner: React.FC = () => {
         {/* Downloads button */}
         <TouchableOpacity style={styles.button} onPress={handleDownloadsPress} activeOpacity={0.8}>
           <View style={styles.buttonContent}>
-            <Icon name="download" size={18} color="#FFFFFF" style={styles.buttonIcon} />
+            <Icon name="download" size={width < 600 ? 16 : 18} color="#FFFFFF" style={styles.buttonIcon} />
             <Text style={styles.buttonText}>Yuklab olinganlar</Text>
           </View>
           <View style={styles.buttonGlow} />
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
     width: "100%",
-    minHeight: 120,
+    minHeight: width < 600 ? 100 : 120,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -136,18 +136,18 @@ const styles = StyleSheet.create({
   },
   content: {
     position: "relative",
-    flexDirection: "row",
+    flexDirection: width < 600 ? "column" : "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    gap: 16,
+    paddingHorizontal: width < 600 ? 16 : 20,
+    paddingVertical: width < 600 ? 16 : 20,
+    gap: width < 600 ? 12 : 16,
     zIndex: 2,
   },
   iconContainer: {
     position: "relative",
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: width < 600 ? 48 : 56,
+    height: width < 600 ? 48 : 56,
+    borderRadius: width < 600 ? 24 : 28,
     backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
@@ -156,33 +156,36 @@ const styles = StyleSheet.create({
   },
   iconGlow: {
     position: "absolute",
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: width < 600 ? 48 : 56,
+    height: width < 600 ? 48 : 56,
+    borderRadius: width < 600 ? 24 : 28,
     backgroundColor: "#FFFFFF",
     opacity: 0.2,
   },
   textContainer: {
     flex: 1,
-    gap: 4,
+    gap: width < 600 ? 3 : 4,
+    alignItems: width < 600 ? "center" : "flex-start",
   },
   title: {
-    fontSize: 18,
+    fontSize: width < 600 ? 16 : 18,
     fontWeight: "700",
     color: "#FFFFFF",
     letterSpacing: 0.3,
+    textAlign: width < 600 ? "center" : "left",
   },
   description: {
-    fontSize: 13,
+    fontSize: width < 600 ? 12 : 13,
     fontWeight: "400",
     color: "rgba(255, 255, 255, 0.9)",
-    lineHeight: 18,
+    lineHeight: width < 600 ? 16 : 18,
+    textAlign: width < 600 ? "center" : "left",
   },
   button: {
     position: "relative",
     backgroundColor: "rgba(255, 255, 255, 0.2)",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: width < 600 ? 12 : 16,
+    paddingVertical: width < 600 ? 10 : 12,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: "rgba(255, 255, 255, 0.3)",
@@ -195,13 +198,13 @@ const styles = StyleSheet.create({
   buttonContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: width < 600 ? 4 : 6,
   },
   buttonIcon: {
-    marginRight: 2,
+    marginRight: width < 600 ? 1 : 2,
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: width < 600 ? 13 : 14,
     fontWeight: "600",
     color: "#FFFFFF",
     letterSpacing: 0.5,
@@ -220,9 +223,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -30,
     right: -30,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: width < 600 ? 80 : 100,
+    height: width < 600 ? 80 : 100,
+    borderRadius: width < 600 ? 40 : 50,
     backgroundColor: "rgba(255, 255, 255, 0.08)",
     zIndex: 1,
   },
@@ -230,9 +233,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -40,
     left: -20,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: width < 600 ? 100 : 120,
+    height: width < 600 ? 100 : 120,
+    borderRadius: width < 600 ? 50 : 60,
     backgroundColor: "rgba(255, 255, 255, 0.05)",
     zIndex: 1,
   },

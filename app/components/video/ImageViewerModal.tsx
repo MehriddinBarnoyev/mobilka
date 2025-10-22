@@ -1,5 +1,3 @@
-"use client"
-
 import {
   Modal,
   View,
@@ -10,145 +8,155 @@ import {
   StyleSheet,
   useWindowDimensions,
   PanResponder,
-} from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { X } from "lucide-react-native"
-import { useRef } from "react"
-import { useScaling } from "../../../hooks/useScaling"
-
-type ImageViewerModalProps = {
-  visible: boolean
-  imageUrl: string | null
-  imageError: boolean
-  panY: Animated.Value
-  orientation: "portrait" | "landscape"
-  onClose: () => void
-  onImageError: () => void
-}
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { useRef } from 'react';
+import { useScaling } from '../../../hooks/useScaling';
 
 export const ImageViewerModal = ({
-  visible,
-  imageUrl,
-  imageError,
-  panY,
-  orientation,
-  onClose,
-  onImageError,
-}: ImageViewerModalProps) => {
-  const { width, height } = useWindowDimensions()
-  const { top, bottom } = useSafeAreaInsets()
-  const { scaleFont, scaleSpacing } = useScaling()
+                                   visible,
+                                   imageUrls,
+                                   selectedIndex,
+                                   imageError,
+                                   panY,
+                                   orientation,
+                                   onClose,
+                                   onImageError,
+                                   onIndexChange,
+                                 }) => {
+  const { width, height } = useWindowDimensions();
+  const { top, bottom } = useSafeAreaInsets();
+  const { scaleFont, scaleSpacing } = useScaling();
+
+  // 🔹 Gesture uchun threshold
+  const SWIPE_THRESHOLD = 120;
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && Math.abs(gestureState.dy) > 10
-      },
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) =>
+        Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && Math.abs(gestureState.dy) > 10,
+
       onPanResponderMove: Animated.event([null, { dy: panY }], { useNativeDriver: false }),
+
       onPanResponderRelease: (e, gestureState) => {
-        if (gestureState.dy > 200) {
+        if (Math.abs(gestureState.dy) > SWIPE_THRESHOLD) {
+          // 🔹 Pastga yoki tepaga tortilganda yopiladi
           Animated.timing(panY, {
-            toValue: height,
-            duration: 300,
+            toValue: gestureState.dy > 0 ? height : -height,
+            duration: 250,
             useNativeDriver: true,
-          }).start(onClose)
+          }).start(() => {
+            panY.setValue(0);
+            onClose();
+          });
         } else {
-          Animated.timing(panY, {
+          // 🔹 Juda oz harakat bo‘lsa, qayta joyiga qaytar
+          Animated.spring(panY, {
             toValue: 0,
-            duration: 300,
             useNativeDriver: true,
-          }).start()
+          }).start();
         }
       },
-    }),
-  ).current
+    })
+  ).current;
 
-  const imgWidth = orientation === "portrait" ? width : height
-  const imgHeight = orientation === "portrait" ? height - top - bottom : width - top - bottom
+  const imgWidth = orientation === 'portrait' ? width : height;
+  const imgHeight = orientation === 'portrait' ? height - top - bottom : width - top - bottom;
+
+  const handlePrev = () => {
+    if (selectedIndex !== null && selectedIndex > 0) {
+      onIndexChange(selectedIndex - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (selectedIndex !== null && selectedIndex < imageUrls.length - 1) {
+      onIndexChange(selectedIndex + 1);
+    }
+  };
 
   return (
-    <Modal visible={visible} transparent={false} animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible={visible} transparent={false} animationType="fade" onRequestClose={onClose}>
       <View style={styles.container}>
-        <View style={styles.overlay} />
         <Animated.View
           style={[
             styles.imageContainer,
-            {
-              width,
-              height: height - top - bottom,
-              transform: [{ translateY: panY }],
-            },
+            { transform: [{ translateY: panY }], width, height: height - top - bottom },
           ]}
           {...panResponder.panHandlers}
         >
-          {imageError ? (
+          {imageError || selectedIndex === null || !imageUrls[selectedIndex] ? (
             <View style={styles.errorContainer}>
               <Text style={[styles.errorText, { fontSize: scaleFont(16) }]}>Failed to load image</Text>
             </View>
           ) : (
-            imageUrl && (
-              <Image
-                source={{ uri: imageUrl }}
-                style={[styles.image, { width: imgWidth, height: imgHeight }]}
-                resizeMode="contain"
-                onError={onImageError}
-              />
-            )
+            <Image
+              source={{ uri: imageUrls[selectedIndex] }}
+              style={[styles.image, { width: imgWidth, height: imgHeight }]}
+              resizeMode="contain"
+              onError={onImageError}
+            />
           )}
         </Animated.View>
+
+        {/* 🔹 Left/Right navigation */}
+        {imageUrls.length > 1 && selectedIndex !== null && (
+          <>
+            {selectedIndex > 0 && (
+              <TouchableOpacity
+                style={[styles.navButton, styles.leftButton]}
+                onPress={handlePrev}
+                activeOpacity={0.7}
+              >
+                <ChevronLeft size={scaleFont(24)} color="#fff" />
+              </TouchableOpacity>
+            )}
+            {selectedIndex < imageUrls.length - 1 && (
+              <TouchableOpacity
+                style={[styles.navButton, styles.rightButton]}
+                onPress={handleNext}
+                activeOpacity={0.7}
+              >
+                <ChevronRight size={scaleFont(24)} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+
         <TouchableOpacity
           style={[styles.closeButton, { top: top + scaleSpacing(10) }]}
           onPress={onClose}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <X size={scaleFont(24)} color="#fff" strokeWidth={2} />
+          <X size={scaleFont(22)} color="#fff" />
         </TouchableOpacity>
       </View>
     </Modal>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#000",
-    opacity: 0.8,
-    zIndex: -1,
-  },
-  imageContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    backfaceVisibility: "visible",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
+  container: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+  imageContainer: { justifyContent: 'center', alignItems: 'center' },
+  image: { width: '100%', height: '100%' },
   closeButton: {
-    position: "absolute",
+    position: 'absolute',
     right: 10,
-    padding: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 999,
-    zIndex: 10,
+    padding: 8,
   },
-  errorContainer: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#e2e8f0",
+  navButton: {
+    position: 'absolute',
+    top: '50%',
+    padding: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 999,
   },
-  errorText: {
-    color: "#e11d48",
-  },
-})
+  leftButton: { left: 10 },
+  rightButton: { right: 10 },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { color: '#fff' },
+});

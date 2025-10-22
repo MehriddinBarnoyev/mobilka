@@ -515,7 +515,7 @@ export default function Home() {
        <View>
         <OfflineBanner />
         <Image
-          source={require("../../assets/images/4093050.jpg")}
+          source={require("../../assets/images/offline.jpg")}
           style={{ width: '100%', height: '50%', marginTop: 100 }}
           resizeMode="contain"
         />
