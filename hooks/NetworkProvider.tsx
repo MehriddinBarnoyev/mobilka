@@ -49,7 +49,6 @@ export const NetworkProvider: React.FC<React.PropsWithChildren<{}>> = ({ childre
       .then((state: NetInfoState) => {
         if (cancelled) return;
         console.log("[NetworkProvider] NetInfo.fetch ->", state);
-        setIsConnected(state.isConnected ?? false);
         setIsInternetReachable(state.isInternetReachable ?? null);
       })
       .catch((e) => {

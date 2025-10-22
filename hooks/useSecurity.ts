@@ -18,7 +18,6 @@ const setIsSecured = (value: boolean) => {
   listeners.forEach(cb => cb());
 };
 
-// Custom global hook
 export function useSecurity() {
   const current = useSyncExternalStore(subscribe, getSnapshot);
   return {
