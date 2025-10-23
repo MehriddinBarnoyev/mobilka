@@ -1,8 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../type';
-
 const TOKEN_KEY = 'auth_token';
 
 const auth = {
@@ -14,7 +10,7 @@ const auth = {
       console.error('❌ Error setting token:', e);
     }
   },
-  // 
+  //
 
   getToken: async (): Promise<string | null> => {
     try {

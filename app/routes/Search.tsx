@@ -25,8 +25,6 @@ import { useUser } from "../../context/UserContext"
 import { PixelRatio } from "react-native"
 import { isTablet } from "../../utils/responsive" // Assuming this utility exists
 import { useNetwork } from "../../hooks/useNetwork"
-import { OfflineBanner } from "../components/core/OfflineBanner"
-import { useOfflineGuard } from "../../hooks/useOfflineGuard" // Import offline guard hook
 
 const tagColors = [
   "#FF6B6B",
@@ -310,7 +308,7 @@ export default function SearchScreen() {
           return
         }
 
-        navigation.navigate("SearchedVideos", {
+        navigation.navigate('SearchedVideos', {
           title: `#${tag}`,
           videos: videosWithExp,
         })
