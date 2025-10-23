@@ -1,217 +1,242 @@
-"use client"
+'use client';
 
-import { useEffect, useState, useCallback } from "react"
-import { StyleSheet, Text, View, TouchableOpacity, Alert, useWindowDimensions, Platform } from "react-native"
-import { VdoDownload } from "vdocipher-rn-bridge"
-import type { DownloadStatus, Track } from "vdocipher-rn-bridge/type"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { PixelRatio } from "react-native"
-import { isTablet } from "../../../utils/responsive"
+import {useEffect, useState, useCallback} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  useWindowDimensions,
+  Platform,
+} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {PixelRatio} from 'react-native';
+import {VdoDownload} from 'vdocipher-rn-bridge';
+import type {DownloadStatus, Track} from 'vdocipher-rn-bridge/type';
+import {isTablet} from '../../../utils/responsive';
 
 interface VideoInfoProps {
-  title: string
-  description: string
-  otp: string
-  playbackInfo: string
+  title: string;
+  description: string;
+  otp: string;
+  playbackInfo: string;
 }
 
-function VideoInfo({ title, description, otp, playbackInfo }: VideoInfoProps) {
-  const [realMediaId, setRealMediaId] = useState<string | null>(null)
-  const [downloadStatus, setDownloadStatus] = useState<DownloadStatus | null>(null)
-  const { width } = useWindowDimensions()
-  const { top, bottom } = useSafeAreaInsets()
+function VideoInfo({title, description, otp, playbackInfo}: VideoInfoProps) {
+  const [mediaId, setMediaId] = useState<string | null>(null);
+  const [status, setStatus] = useState<DownloadStatus | null>(null);
 
-  const isMobile = width < 600
-  const isTabletDevice = isTablet()
-  const isDesktop = width >= 1024
+  const {width} = useWindowDimensions();
+  const {top, bottom} = useSafeAreaInsets();
+  const isMobile = width < 600;
+  const isTabletDevice = isTablet();
+  const isDesktop = width >= 1024;
 
-  const resolveMediaId = useCallback(() => realMediaId, [realMediaId])
-
+  // 🔹 FONT SCALE
   const scaleFont = (size: number) => {
-    let multiplier: number
-    if (width >= 1920) {
-      multiplier = 1.3
-    } else if (width >= 1440) {
-      multiplier = 1.2
-    } else if (width >= 1024) {
-      multiplier = 1.1
-    } else if (width >= 768) {
-      multiplier = 1.0
-    } else if (width >= 600) {
-      multiplier = 0.95
-    } else {
-      multiplier = 0.9
+    const multiplier =
+      width >= 1920
+        ? 1.3
+        : width >= 1440
+        ? 1.2
+        : width >= 1024
+        ? 1.1
+        : width >= 768
+        ? 1.0
+        : width >= 600
+        ? 0.95
+        : 0.9;
+
+    return Math.round(PixelRatio.roundToNearestPixel(size * multiplier));
+  };
+
+  // 🔹 MEDIA ID HELPER
+  const getMediaId = useCallback(() => mediaId, [mediaId]);
+
+  // 🔹 INITIAL DOWNLOAD STATUS CHECK
+  const initialCheck = useCallback(async () => {
+    try {
+      const {downloadOptions} = await VdoDownload.getDownloadOptions({
+        otp,
+        playbackInfo,
+      });
+      const id = downloadOptions.mediaInfo.mediaId;
+      setMediaId(id);
+
+      const allStatus = await VdoDownload.query();
+      const current = allStatus.find(s => s.mediaInfo.mediaId === id);
+      if (current) setStatus(current);
+    } catch (err) {
+      console.warn('[initialCheck] Failed to retrieve download info:', err);
     }
-    return Math.round(PixelRatio.roundToNearestPixel(size * multiplier))
-  }
+  }, [otp, playbackInfo]);
 
-  const initialCheck = useCallback(() => {
-    VdoDownload.getDownloadOptions({ otp, playbackInfo })
-      .then(({ downloadOptions }: any) => {
-        const actualMediaId = downloadOptions.mediaInfo.mediaId
-        setRealMediaId(actualMediaId)
+  // 🔹 SYNC STATUS
+  const syncStatus = useCallback(async () => {
+    const id = getMediaId();
+    if (!id) return;
 
-        return VdoDownload.query().then((statusList: any) => {
-          const match = statusList.find((s: any) => s.mediaInfo.mediaId === actualMediaId)
+    try {
+      const allStatus = await VdoDownload.query();
+      const current = allStatus.find(s => s.mediaInfo.mediaId === id);
+      setStatus(current || null);
+    } catch (err) {
+      console.warn('[VideoInfo] Sync error:', err);
+    }
+  }, [getMediaId]);
 
-          if (match) {
-            setDownloadStatus(match)
-          }
-        })
-      })
-      .catch((err: any) => console.warn("[initialCheck] Failed to retrieve download info:", err))
-  }, [otp, playbackInfo])
-
-  const syncStatus = useCallback(() => {
-    const id = resolveMediaId()
-    if (!id) return
-
-    VdoDownload.query()
-      .then((statusList: DownloadStatus[]) => {
-        const found = statusList.find((s) => s.mediaInfo.mediaId === id)
-        setDownloadStatus(found || null)
-      })
-      .catch((err: any) => console.warn("[VideoInfo] Sync error:", err))
-  }, [resolveMediaId])
-
+  // 🔹 EVENT LISTENERS
   useEffect(() => {
-    let isMounted = true
-    initialCheck()
+    let mounted = true;
+    initialCheck();
 
-    const interval = setInterval(syncStatus, 3000)
+    const interval = setInterval(syncStatus, 3000);
 
-    const createListener = (event: string, handler: (mediaId: string, status?: DownloadStatus) => void) => {
-      return VdoDownload.addEventListener(event, (id: string, status: DownloadStatus) => {
-        if (id === resolveMediaId() && isMounted) {
-          handler(id, status)
-        }
-      })
-    }
+    const addListener = (
+      event: string,
+      handler: (status?: DownloadStatus) => void,
+    ) =>
+      VdoDownload.addEventListener(event, (id: string, s: DownloadStatus) => {
+        if (id === getMediaId() && mounted) handler(s);
+      });
 
-    const unsubChanged = createListener("onChanged", (_, status) => setDownloadStatus({ ...status! }))
-    const unsubCompleted = createListener("onCompleted", (_, status) => setDownloadStatus({ ...status! }))
-    const unsubQueued = createListener("onQueued", (_, status) => setDownloadStatus({ ...status! }))
-    const unsubFailed = createListener("onFailed", (_, status) => setDownloadStatus({ ...status! }))
-    const unsubDeleted = VdoDownload.addEventListener("onDeleted", (id: any) => {
-      if (id === resolveMediaId() && isMounted) {
-        setDownloadStatus(null)
-      }
-    })
+    const unsubscribes = [
+      addListener('onChanged', s => setStatus({...s!})),
+      addListener('onCompleted', s => setStatus({...s!})),
+      addListener('onQueued', s => setStatus({...s!})),
+      addListener('onFailed', s => setStatus({...s!})),
+      VdoDownload.addEventListener('onDeleted', (id: string) => {
+        if (id === getMediaId() && mounted) setStatus(null);
+      }),
+    ];
 
     return () => {
-      isMounted = false
-      clearInterval(interval)
-      unsubChanged()
-      unsubCompleted()
-      unsubQueued()
-      unsubFailed()
-      unsubDeleted()
+      mounted = false;
+      clearInterval(interval);
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }, [initialCheck, syncStatus]);
+
+  // 🔹 GET SELECTED TRACKS
+  const getSelections = (tracks: Track[]) => {
+    const video = tracks.findIndex(t => t.type === 'video');
+    const audio = tracks.findIndex(t => t.type === 'audio');
+    return [video, audio].filter(i => i !== -1);
+  };
+
+  // 🔹 HANDLE DOWNLOAD
+  const handleDownload = async () => {
+    try {
+      const {downloadOptions, enqueue} = await VdoDownload.getDownloadOptions({
+        otp,
+        playbackInfo,
+      });
+      const selections = getSelections(downloadOptions.availableTracks);
+      const id = downloadOptions.mediaInfo.mediaId;
+
+      setMediaId(id);
+      setStatus({
+        mediaInfo: downloadOptions.mediaInfo,
+        status: 'queued',
+        downloadPercent: 0,
+        enableAutoResume: true,
+        reason: '',
+        reasonDescription: '',
+        poster: '',
+      });
+
+      await enqueue({selections});
+      syncStatus();
+    } catch (err) {
+      console.warn('[VideoInfo] Download start failed:', err);
     }
-  }, [syncStatus, initialCheck])
+  };
 
-  const getSelection = (tracks: Track[]) => {
-    const selections: number[] = []
-    const video = tracks.findIndex((t) => t.type === "video")
-    const audio = tracks.findIndex((t) => t.type === "audio")
-    if (video !== -1) selections.push(video)
-    if (audio !== -1) selections.push(audio)
-    return selections
-  }
-
-  const handleDownload = () => {
-    VdoDownload.getDownloadOptions({ otp, playbackInfo })
-      .then(({ downloadOptions, enqueue }: any) => {
-        const selections = getSelection(downloadOptions.availableTracks)
-        const mediaIdFromSDK = downloadOptions.mediaInfo.mediaId
-
-        setRealMediaId(mediaIdFromSDK)
-        setDownloadStatus({
-          mediaInfo: downloadOptions.mediaInfo,
-          status: "queued",
-          downloadPercent: 0,
-          enableAutoResume: true,
-          reason: "",
-          reasonDescription: "",
-          poster: "",
-        })
-
-        return enqueue({ selections })
-      })
-      .then(() => {
-        syncStatus()
-      })
-      .catch((err: any) => console.warn("[VideoInfo] Download start failed:", err))
-  }
-
+  // 🔹 HANDLE CANCEL
   const handleCancel = () => {
-    const id = resolveMediaId()
-    if (!id) return
+    const id = getMediaId();
+    if (!id) return;
 
-    Alert.alert("Yuklab olishni bekor qilish", "Bekor qilishni istayotganingizga ishonchingiz komilmi?", [
-      { text: "Yo'q", style: "cancel" },
-      {
-        text: "Ha",
-        style: "destructive",
-        onPress: () =>
-          VdoDownload.remove([id])
-            .then(() => console.log("[VideoInfo] Download removed"))
-            .catch((err: any) => console.warn("[VideoInfo] Remove failed:", err)),
-      },
-    ])
-  }
+    Alert.alert(
+      'Yuklab olishni bekor qilish',
+      'Bekor qilishni istayotganingizga ishonchingiz komilmi?',
+      [
+        {text: "Yo'q", style: 'cancel'},
+        {
+          text: 'Ha',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await VdoDownload.remove([id]);
+              console.log('[VideoInfo] Download removed');
+            } catch (err) {
+              console.warn('[VideoInfo] Remove failed:', err);
+            }
+          },
+        },
+      ],
+    );
+  };
 
+  // 🔹 STATUS RENDERING
   const renderStatus = () => {
-    if (!downloadStatus) {
+    if (!status)
       return (
-        <Text style={[styles.statusText, { fontSize: scaleFont(isMobile ? 12 : 14) }]}>
+        <Text
+          style={[
+            styles.statusText,
+            {fontSize: scaleFont(isMobile ? 12 : 14)},
+          ]}>
           📂 Yuklab olishni boshlash uchun bosing
         </Text>
-      )
-    }
+      );
 
-    let statusText = ""
-    switch (downloadStatus.status) {
-      case "completed":
-        statusText = "✅ Muvaffaqiyatli yuklab olindi"
-        break
-      case "downloading":
-        statusText = `⬇️ Yuklab olinmoqda: ${downloadStatus.downloadPercent?.toFixed(1) ?? "0"}%`
-        break
-      case "queued":
-      case "pending":
-        statusText = "⏳ Navbatga qo'yildi..."
-        break
-      case "failed":
-        statusText = `❌ Muvaffaqiyatsiz tugadi: ${downloadStatus.reasonDescription || downloadStatus.reason}`
-        break
-      default:
-        statusText = `⚠️ Status: ${downloadStatus.status}`
-    }
+    const {downloadPercent = 0, status: st, reason, reasonDescription} = status;
+    const percent = downloadPercent.toFixed(1);
+
+    const statusText =
+      st === 'completed'
+        ? '✅ Muvaffaqiyatli yuklab olindi'
+        : st === 'downloading'
+        ? `⬇️ Yuklab olinmoqda: ${percent}%`
+        : st === 'queued' || st === 'pending'
+        ? "⏳ Navbatga qo'yildi..."
+        : st === 'failed'
+        ? `❌ Muvaffaqiyatsiz tugadi: ${reasonDescription || reason}`
+        : `⚠️ Status: ${st}`;
 
     return (
       <View>
-        <Text style={[styles.statusText, { fontSize: scaleFont(isMobile ? 12 : 14) }]}>{statusText}</Text>
-        {downloadStatus.status === "downloading" && (
+        <Text
+          style={[
+            styles.statusText,
+            {fontSize: scaleFont(isMobile ? 12 : 14)},
+          ]}>
+          {statusText}
+        </Text>
+        {st === 'downloading' && (
           <View
             style={[
               styles.progressBarContainer,
               {
                 height: isMobile ? 6 : 8,
-                width: "100%",
-                maxWidth: isDesktop ? 600 : "100%",
+                maxWidth: isDesktop ? 600 : '100%',
               },
-            ]}
-          >
-            <View style={[styles.progressBarFill, { width: `${downloadStatus.downloadPercent ?? 0}%` }]} />
+            ]}>
+            <View
+              style={[styles.progressBarFill, {width: `${downloadPercent}%`}]}
+            />
           </View>
         )}
       </View>
-    )
-  }
+    );
+  };
 
-  const isDownloadable = !downloadStatus || downloadStatus.status === "failed" || downloadStatus.status === "removed"
-
-  const buttonWidth = isDesktop ? "60%" : isTabletDevice ? "70%" : "100%"
+  // 🔹 BUTTON CONDITIONS
+  const isDownloadable =
+    !status || ['failed', 'removed'].includes(status.status);
+  const buttonWidth = isDesktop ? '60%' : isTabletDevice ? '70%' : '100%';
 
   return (
     <View
@@ -221,55 +246,65 @@ function VideoInfo({ title, description, otp, playbackInfo }: VideoInfoProps) {
           padding: isMobile ? 12 : isTabletDevice ? 16 : 20,
           marginTop: top,
           marginBottom: bottom,
-          maxWidth: isDesktop ? 1200 : "100%",
-          alignSelf: "center",
-          width: "100%",
+          maxWidth: isDesktop ? 1200 : '100%',
+          alignSelf: 'center',
+          width: '100%',
         },
-      ]}
-    >
+      ]}>
       <View style={styles.content}>
-        <Text style={[styles.title, { fontSize: scaleFont(isMobile ? 16 : 18) }]} numberOfLines={2}>
+        <Text
+          style={[styles.title, {fontSize: scaleFont(isMobile ? 16 : 18)}]}
+          numberOfLines={2}>
           {title}
         </Text>
-        <Text style={[styles.meta, { fontSize: scaleFont(isMobile ? 12 : 14) }]}>{description}</Text>
-        <View style={{ marginTop: isMobile ? 8 : 10 }}>{renderStatus()}</View>
-      {isDownloadable && (
-  Platform.OS === "ios" ? (
-    <View
-      style={[
-        styles.downloadBtn,
-        {
-          backgroundColor: "#95a5a6",
-          paddingVertical: isMobile ? 8 : 10,
-          width: buttonWidth,
-          alignSelf: "center",
-        },
-      ]}
-    >
-      <Text style={[styles.downloadBtnText, { fontSize: scaleFont(isMobile ? 14 : 16) }]}>
-        🚧 Coming Soon (iOS)
-      </Text>
-    </View>
-  ) : (
-    <TouchableOpacity
-      onPress={handleDownload}
-      style={[
-        styles.downloadBtn,
-        {
-          paddingVertical: isMobile ? 8 : 10,
-          width: buttonWidth,
-          alignSelf: "center",
-        },
-      ]}
-    >
-      <Text style={[styles.downloadBtnText, { fontSize: scaleFont(isMobile ? 14 : 16) }]}>
-        Yuklab olish
-      </Text>
-    </TouchableOpacity>
-  )
-)}
+        <Text style={[styles.meta, {fontSize: scaleFont(isMobile ? 12 : 14)}]}>
+          {description}
+        </Text>
 
-        {downloadStatus?.status === "completed" && (
+        <View style={{marginTop: isMobile ? 8 : 10}}>{renderStatus()}</View>
+
+        {isDownloadable &&
+          (Platform.OS === 'ios' ? (
+            <View
+              style={[
+                styles.downloadBtn,
+                {
+                  backgroundColor: '#95a5a6',
+                  paddingVertical: isMobile ? 8 : 10,
+                  width: buttonWidth,
+                  alignSelf: 'center',
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.downloadBtnText,
+                  {fontSize: scaleFont(isMobile ? 14 : 16)},
+                ]}>
+                🚧 Coming Soon (iOS)
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={handleDownload}
+              style={[
+                styles.downloadBtn,
+                {
+                  paddingVertical: isMobile ? 8 : 10,
+                  width: buttonWidth,
+                  alignSelf: 'center',
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.downloadBtnText,
+                  {fontSize: scaleFont(isMobile ? 14 : 16)},
+                ]}>
+                Yuklab olish
+              </Text>
+            </TouchableOpacity>
+          ))}
+
+        {status?.status === 'completed' && (
           <TouchableOpacity
             disabled
             style={[
@@ -278,14 +313,20 @@ function VideoInfo({ title, description, otp, playbackInfo }: VideoInfoProps) {
                 opacity: 0.6,
                 paddingVertical: isMobile ? 8 : 10,
                 width: buttonWidth,
-                alignSelf: "center",
+                alignSelf: 'center',
               },
-            ]}
-          >
-            <Text style={[styles.downloadBtnText, { fontSize: scaleFont(isMobile ? 14 : 16) }]}>Yuklab olingan</Text>
+            ]}>
+            <Text
+              style={[
+                styles.downloadBtnText,
+                {fontSize: scaleFont(isMobile ? 14 : 16)},
+              ]}>
+              Yuklab olingan
+            </Text>
           </TouchableOpacity>
         )}
-        {downloadStatus?.status === "downloading" && (
+
+        {status?.status === 'downloading' && (
           <TouchableOpacity
             onPress={handleCancel}
             style={[
@@ -293,73 +334,81 @@ function VideoInfo({ title, description, otp, playbackInfo }: VideoInfoProps) {
               {
                 paddingVertical: isMobile ? 6 : 8,
                 width: buttonWidth,
-                alignSelf: "center",
+                alignSelf: 'center',
               },
-            ]}
-          >
-            <Text style={[styles.cancelBtnText, { fontSize: scaleFont(isMobile ? 14 : 16) }]}>Bekor qilish</Text>
+            ]}>
+            <Text
+              style={[
+                styles.cancelBtnText,
+                {fontSize: scaleFont(isMobile ? 14 : 16)},
+              ]}>
+              Bekor qilish
+            </Text>
           </TouchableOpacity>
         )}
       </View>
     </View>
-  )
+  );
 }
 
-export default VideoInfo
+export default VideoInfo;
 
+// =====================
+// 🔹 STYLES
+// =====================
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: '#e2e8f0',
   },
   content: {
     flex: 1,
     paddingHorizontal: 10,
   },
   title: {
-    fontWeight: "700",
-    color: "#2c3e50",
+    fontWeight: '700',
+    color: '#2c3e50',
     marginBottom: 8,
   },
   meta: {
-    color: "#7f8c8d",
-    fontWeight: "500",
+    color: '#7f8c8d',
+    fontWeight: '500',
   },
   downloadBtn: {
     marginTop: 12,
-    backgroundColor: "#3498db",
+    backgroundColor: '#3498db',
     borderRadius: 8,
   },
   downloadBtnText: {
-    color: "#fff",
-    fontWeight: "600",
-    textAlign: "center",
+    color: '#fff',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   cancelBtn: {
     marginTop: 10,
-    backgroundColor: "#e74c3c",
+    backgroundColor: '#e74c3c',
     borderRadius: 8,
   },
   cancelBtnText: {
-    color: "#fff",
-    fontWeight: "600",
-    textAlign: "center",
+    color: '#fff',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   statusText: {
-    color: "#2c3e50",
-    fontWeight: "500",
+    color: '#2c3e50',
+    fontWeight: '500',
   },
   progressBarContainer: {
-    backgroundColor: "#eee",
+    backgroundColor: '#eee',
     borderRadius: 4,
     marginTop: 6,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   progressBarFill: {
-    height: "100%",
-    backgroundColor: "#3498db",
+    height: '100%',
+    backgroundColor: '#3498db',
     borderRadius: 4,
   },
-})
+});

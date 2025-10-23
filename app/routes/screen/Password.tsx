@@ -13,17 +13,20 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSecurity } from '../../../hooks/useSecurity';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AxiosError } from 'axios';
+import { RootStackParamList } from '../../../type';
+import {
+  responsiveWidth as rw,
+  responsiveHeight as rh,
+} from '../../../utils/responsive';
+import { fontScale as fs } from '../../../utils/fontScale';
 import api from '../../../core/api/apiService';
 import auth from '../../../utils/auth';
-import { useSecurity } from '../../../hooks/useSecurity';
+import { AxiosError } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNetwork } from '../../../hooks/NetworkProvider';
-import { RootStackParamList } from '../../../type';
-import { responsiveWidth as rw, responsiveHeight as rh } from '../../../utils/responsive';
-import { fontScale as fs } from '../../../utils/fontScale';
 
 export default function Password() {
   const [code, setCode] = useState('');
@@ -33,77 +36,71 @@ export default function Password() {
   const [lockTime, setLockTime] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
-  const [pinCode, setPinCode] = useState<string | null>(null);
 
-  const { isOnline } = useNetwork();
-  const { setIsSecured } = useSecurity();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [pinCode, setPinCode] = useState<string | null>(null);
+  const isConnected = useNetwork();
 
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 768;
   const isMobile = width < 600;
   const isLandscape = width > height;
 
-  // Fetch PIN (local first, server second)
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { setIsSecured } = useSecurity();
+
+  // 🔹 PIN olish (avval localdan, keyin agar internet bo‘lsa serverdan yangilash)
   useEffect(() => {
-    let isMounted = true;
+    let cancelled = false;
 
     (async () => {
-      setIsLoading(true);
       try {
+        setIsLoading(true);
+
+        // 1️⃣ Avvalo localdan o‘qib olamiz
         const localPin = await AsyncStorage.getItem('pinCode');
-        if (isMounted && localPin) {
+        if (localPin && !cancelled) {
+          console.log('[PIN] Localdan olindi:', localPin);
           setPinCode(localPin);
-          console.log('[PIN] Local PIN topildi:', localPin);
         }
 
-        if (isOnline) {
-          try {
-            const res = await api.get('/services/userms/api/account');
-            const apiPin = res?.data?.pinCode;
-            if (apiPin && isMounted) {
-              const normalizedPin = String(apiPin).padStart(6, '0');
-              await AsyncStorage.setItem('pinCode', normalizedPin);
-              setPinCode(normalizedPin);
-              console.log('[PIN] Serverdan yangilandi:', normalizedPin);
-            }
-          } catch (err) {
-            console.log('[PIN] Serverdan olishda xato:', err);
-          }
-        } else {
-          if (!localPin) {
-            setError('Offline rejimda PIN mavjud emas. Internetga ulanib qayta urinib ko‘ring.');
+        // 2️⃣ Agar internet bor bo‘lsa, serverdan yangisini olib kelamiz
+        if (isConnected) {
+          const res = await api.get('/services/userms/api/account');
+          const apiPin = res?.data?.pinCode;
+          console.log('[PIN] Serverdan olindi:', apiPin);
+
+          if (apiPin) {
+            const normalizedPin = String(apiPin).padStart(6, '0');
+            await AsyncStorage.setItem('pinCode', normalizedPin);
+            if (!cancelled) setPinCode(normalizedPin);
           } else {
-            console.log('[PIN] Offline rejimda local PIN ishlatyapti');
+            if (!cancelled) setError('Serverda PIN topilmadi.');
           }
+        } else if (!localPin) {
+          if (!cancelled)
+            setError(
+              'Siz offline holatdasiz va PIN hali saqlanmagan. Internetga ulanib qayta urinib ko‘ring.'
+            );
         }
       } catch (e) {
         if (e instanceof AxiosError && e.response?.status === 401) {
-          await auth.removeToken();
+          auth.removeToken();
           navigation.replace('Home');
+          return;
         }
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     })();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
-  }, [isOnline]);
+  }, [isConnected]);
 
-  // Handle number press
-  const handleNumberPress = (num: string) => {
-    if (isLocked || code.length >= 6) return;
-    setCode(code + num);
-    setError('');
-  };
-
-  const handleBackspace = () => {
-    if (code.length > 0) setCode(code.slice(0, -1));
-  };
-
-  const handleSubmit = () => {
+  // 🔐 PIN tekshirish
+  const handleSubmit = async () => {
     if (isLocked || code.length !== 6) return;
 
     if (!pinCode) {
@@ -125,18 +122,29 @@ export default function Password() {
         setCountdown(60);
         setError('5 marta noto‘g‘ri urinish. 1 daqiqadan so‘ng urinib ko‘ring.');
       } else {
-        setError(`Noto‘g‘ri kod. Urinishlar: ${newAttempts}/5`);
+        setError(`Noto‘g‘ri kod. Urinishlar soni: ${newAttempts}/5`);
       }
       setCode('');
     }
   };
 
-  // Lock countdown
+  // 🔙 Orqaga o‘chirish
+  const handleBackspace = () => {
+    if (code.length > 0) {
+      setCode(code.slice(0, -1));
+      setError('');
+    }
+  };
+
+  // 🕒 Blok taymeri
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isLocked && lockTime) {
       interval = setInterval(() => {
-        const secondsLeft = Math.max(0, 60 - Math.floor((Date.now() - lockTime.getTime()) / 1000));
+        const secondsLeft = Math.max(
+          0,
+          60 - Math.floor((Date.now() - lockTime.getTime()) / 1000)
+        );
         setCountdown(secondsLeft);
         if (secondsLeft <= 0) {
           setIsLocked(false);
@@ -150,99 +158,146 @@ export default function Password() {
     return () => clearInterval(interval);
   }, [isLocked, lockTime]);
 
-  // Render dots
+  // render dots
   const renderDots = () => (
     <View style={styles.dotsContainer}>
-      {Array.from({ length: 6 }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, index) => (
         <View
-          key={i}
+          key={index}
           style={[
             styles.dot,
-            i < code.length ? styles.dotFilled : styles.dotEmpty,
-            { width: isMobile ? rw(4) : rw(5), height: isMobile ? rw(4) : rw(5), borderRadius: isMobile ? rw(2) : rw(2.5) },
+            index < code.length ? styles.dotFilled : styles.dotEmpty,
+            {
+              width: isMobile ? rw(4) : rw(3),
+              height: isMobile ? rw(4) : rw(3),
+              borderRadius: isMobile ? rw(2) : rw(1.5),
+            },
           ]}
         />
       ))}
     </View>
   );
 
-  // Render keypad
+  // render keypad
   const renderKeypad = () => {
-    const layout = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['⌫', '0', 'OK']];
+    const keypadLayout = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+      ['⌫', '0', 'OK'],
+    ];
+
     return (
       <View style={styles.keypadContainer}>
-        {layout.map((row, i) => (
-          <View key={i} style={styles.keypadRow}>
-            {row.map((key) => (
-              <TouchableOpacity
-                key={key}
-                onPress={
-                  key === '⌫'
-                    ? handleBackspace
-                    : key === 'OK'
-                      ? handleSubmit
-                      : () => handleNumberPress(key)
-                }
-                style={[
-                  styles.keypadButton,
-                  key === 'OK' && {
-                    backgroundColor: code.length === 6 ? '#007AFF' : '#E5E5EA',
-                  },
-                  { width: isMobile ? rw(16) : rw(18), height: isMobile ? rw(16) : rw(18), borderRadius: isMobile ? rw(8) : rw(9) },
-                  (isLocked || isLoading) && { opacity: (key === 'OK' && code.length !== 6) || isLocked ? 0.3 : 1 },
-                ]}
-                disabled={isLocked || (key === 'OK' && code.length !== 6)}
-              >
-                <Text style={[styles.keypadText, key === 'OK' && { color: code.length === 6 ? '#fff' : '#000', fontSize: isMobile ? fs(20) : fs(22) }]}>
-                  {key}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        {keypadLayout.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.keypadRow}>
+            {row.map((key) => {
+              if (key === '⌫') {
+                return (
+                  <TouchableOpacity
+                    key="backspace"
+                    onPress={handleBackspace}
+                    style={styles.keypadButton}
+                    disabled={isLocked}
+                  >
+                    <Text style={styles.keypadIcon}>⌫</Text>
+                  </TouchableOpacity>
+                );
+              } else if (key === 'OK') {
+                return (
+                  <TouchableOpacity
+                    key="ok"
+                    onPress={handleSubmit}
+                    style={[
+                      styles.keypadButton,
+                      {
+                        backgroundColor:
+                          code.length === 6 ? '#007AFF' : '#F2F2F7',
+                      },
+                    ]}
+                    disabled={isLocked || isLoading || code.length !== 6}
+                  >
+                    <Text
+                      style={[
+                        styles.keypadText,
+                        { color: code.length === 6 ? '#fff' : '#000' },
+                      ]}
+                    >
+                      OK
+                    </Text>
+                  </TouchableOpacity>
+                );
+              } else {
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    onPress={() => handleNumberPress(key)}
+                    style={styles.keypadButton}
+                    disabled={isLocked || isLoading}
+                  >
+                    <Text style={styles.keypadText}>{key}</Text>
+                  </TouchableOpacity>
+                );
+              }
+            })}
           </View>
         ))}
       </View>
     );
   };
 
+  const handleNumberPress = (number: string) => {
+    if (isLocked || code.length >= 6) return;
+    setCode(code + number);
+    setError('');
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
+          {/* Logout */}
           <TouchableOpacity
             onPress={() => {
               auth.removeToken();
               navigation.replace('Home');
             }}
-            style={[styles.logoutButton, { top: rh(2), right: rw(2) }]}
+            style={[styles.logoutButton, { top: rh(3), right: rw(3) }]}
           >
-            <Text style={[styles.logoutText, { fontSize: isMobile ? fs(14) : fs(16) }]}>Chiqish</Text>
+            <Text style={styles.logoutButtonText}>Chiqish</Text>
           </TouchableOpacity>
 
           <ScrollView
-            contentContainerStyle={[
-              styles.content,
-              isTablet && isLandscape && { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: rw(5) },
-            ]}
+            contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={[styles.infoContainer, isTablet && isLandscape && { flex: 1, justifyContent: 'center' }]}>
-              <Text style={[styles.lockIcon, { fontSize: isMobile ? fs(28) : fs(32) }]}>🔒</Text>
-              <Text style={[styles.title, { fontSize: isMobile ? fs(24) : fs(26) }]}>Xavfsizlik kodi</Text>
-              <Text style={[styles.subtitle, { fontSize: isMobile ? fs(14) : fs(15) }]}>6 xonali PIN kiriting</Text>
+            <View style={styles.infoContainer}>
+              <View style={styles.lockIcon}>
+                <Text style={styles.lockIconText}>🔒</Text>
+              </View>
+              <Text style={styles.title}>Xavfsizlik kodi</Text>
+              <Text style={styles.subtitle}>
+                Iltimos, 6 xonali xavfsizlik kodini kiriting
+              </Text>
 
-              {isLoading && <Text style={[styles.infoText, { fontSize: isMobile ? fs(14) : fs(15) }]}>PIN yuklanmoqda…</Text>}
-              {!isOnline && !isLoading && <Text style={[styles.infoText, { fontSize: isMobile ? fs(14) : fs(15) }]}>Offline rejimda ishlayapsiz</Text>}
-
-              {renderDots()}
-              {error ? <Text style={[styles.errorText, { fontSize: isMobile ? fs(12) : fs(13) }]}>{error}</Text> : null}
-              {isLocked && <Text style={[styles.errorText, { fontSize: isMobile ? fs(12) : fs(13) }]}>Bloklangan {countdown}s</Text>}
+              <View style={styles.codeSection}>
+                {renderDots()}
+                {isLoading && <Text>PIN yuklanmoqda…</Text>}
+                {!!error && <Text style={styles.errorText}>{error}</Text>}
+                {isLocked && (
+                  <Text style={styles.errorText}>
+                    Bloklangan. {countdown} soniya kuting.
+                  </Text>
+                )}
+              </View>
             </View>
 
-            <View style={[styles.keypadWrapper, isTablet && isLandscape && { flex: 1, alignItems: 'center' }]}>
-              {renderKeypad()}
-            </View>
+            <View style={styles.keypadWrapper}>{renderKeypad()}</View>
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -252,22 +307,59 @@ export default function Password() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  content: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: rh(5) },
-  infoContainer: { alignItems: 'center', marginBottom: rh(2) },
-  lockIcon: { marginBottom: rh(1) },
-  title: { fontWeight: '700', color: '#000', marginBottom: rh(1), textAlign: 'center' },
-  subtitle: { color: '#8E8E93', textAlign: 'center', lineHeight: 22 },
-  dotsContainer: { flexDirection: 'row', justifyContent: 'center', marginVertical: rh(2) },
+  content: { flexGrow: 1, padding: rw(5), alignItems: 'center' },
+  infoContainer: { alignItems: 'center' },
+  lockIcon: {
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: rh(2),
+    borderRadius: rw(10),
+    width: rw(20),
+    height: rw(20),
+  },
+  lockIconText: { fontSize: fs(32) },
+  title: {
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: rh(1),
+    textAlign: 'center',
+    fontSize: fs(26),
+  },
+  subtitle: { color: '#8E8E93', textAlign: 'center' },
+  codeSection: { alignItems: 'center', paddingVertical: rh(2) },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: rh(1),
+  },
   dot: { marginHorizontal: rw(1.5), borderWidth: 2 },
-  dotEmpty: { borderColor: '#E5E5EA' },
+  dotEmpty: { backgroundColor: 'transparent', borderColor: '#E5E5EA' },
   dotFilled: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
   errorText: { color: '#FF3B30', textAlign: 'center', marginTop: rh(1) },
-  infoText: { color: '#8E8E93', textAlign: 'center', marginTop: rh(1) },
-  keypadWrapper: { marginTop: rh(1) },
+  keypadWrapper: { marginTop: rh(2), alignItems: 'center' },
   keypadContainer: { alignItems: 'center' },
-  keypadRow: { flexDirection: 'row', marginBottom: rh(1) },
-  keypadButton: { backgroundColor: '#F2F2F7', justifyContent: 'center', alignItems: 'center', marginHorizontal: rw(1) },
-  keypadText: { color: '#000', fontSize: fs(20) },
-  logoutButton: { position: 'absolute', backgroundColor: '#F2F2F7', borderRadius: rw(5), paddingVertical: rh(1), paddingHorizontal: rw(3), alignItems: 'center', justifyContent: 'center', zIndex: 999, elevation: 5 },
-  logoutText: { color: '#007AFF', fontWeight: '600', textAlign: 'center' },
+  keypadRow: { flexDirection: 'row', marginBottom: rh(2) },
+  keypadButton: {
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: rw(3),
+    width: rw(18),
+    height: rw(18),
+    borderRadius: rw(9),
+  },
+  keypadText: { color: '#000', fontSize: fs(24) },
+  keypadIcon: { color: '#007AFF', fontSize: fs(22) },
+  logoutButton: {
+    position: 'absolute',
+    backgroundColor: '#F2F2F7',
+    borderRadius: rw(5),
+    paddingVertical: rh(1),
+    paddingHorizontal: rw(3),
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+  },
+  logoutButtonText: { color: '#007AFF', fontWeight: '600' },
 });

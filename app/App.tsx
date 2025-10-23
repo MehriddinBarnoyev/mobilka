@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,10 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import VersionCheck from 'react-native-version-check';
-import { enableScreens } from 'react-native-screens';
+import {enableScreens} from 'react-native-screens';
 
 import NativeControlsScreen from './vdocipher/NativeControlsScreen';
 import JSControlsScreen from './vdocipher/JSControlsScreen';
@@ -21,20 +21,20 @@ import AuthGate from './AuthGate';
 import Otp from './auth/otp/Otp';
 import DevicesScreen from './screens/DevicesScreen';
 import LoginScreen from './auth/Login';
-import { GroupDetail } from './screens/gropDetail';
+import {GroupDetail} from './screens/gropDetail';
 import PlaylistDetail from './screens/playlistDetail';
 import VideoScreen from './screens/VideoScreen';
 
-import { RootStackParamList } from '../type';
-import { navigationRef } from '../core/navigationService';
-import { UserProvider } from '../context/UserContext';
-import { NetworkProvider, useNetwork } from '../hooks/NetworkProvider';
+import {RootStackParamList} from '../type';
+import {navigationRef} from '../core/navigationService';
+import {UserProvider} from '../context/UserContext';
+import {NetworkProvider, useNetwork} from '../hooks/NetworkProvider';
 
 enableScreens();
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const UpdateScreen = ({ storeUrl }: { storeUrl: string }) => (
+const UpdateScreen = ({storeUrl}: {storeUrl: string}) => (
   <View style={styles.container}>
     <Text style={styles.title}>Yangi versiya mavjud 🚀</Text>
     <Button title="Yangilash" onPress={() => Linking.openURL(storeUrl)} />
@@ -42,7 +42,7 @@ const UpdateScreen = ({ storeUrl }: { storeUrl: string }) => (
 );
 
 const AppContent = () => {
-  const { isConnected } = useNetwork();
+  const {isConnected} = useNetwork();
   const [checking, setChecking] = useState(true);
   const [needUpdate, setNeedUpdate] = useState(false);
   const [storeUrl, setStoreUrl] = useState('');
@@ -65,7 +65,7 @@ const AppContent = () => {
           setStoreUrl(
             Platform.OS === 'android'
               ? 'https://play.google.com/store/apps/details?id=com.assoodiq.devops'
-              : 'https://apps.apple.com/app/idYOUR_APP_ID'
+              : 'https://apps.apple.com/app/idYOUR_APP_ID',
           );
         }
       } catch (error) {
@@ -95,17 +95,61 @@ const AppContent = () => {
     <NetworkProvider>
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen name="Home" component={AuthGate} options={{ headerShown: false }} />
-          <Stack.Screen name="NativeControls" component={NativeControlsScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="JSControls" component={JSControlsScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Downloads" component={DownloadsScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Playlist" component={PlaylistScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Otp" component={Otp} options={{ headerShown: false }} />
-          <Stack.Screen name="DevicesScreen" component={DevicesScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="GroupDetail" component={GroupDetail} options={{ headerShown: false }} />
-          <Stack.Screen name="PlaylistDetail" component={PlaylistDetail} options={{ headerShown: false }} />
-          <Stack.Screen name="VideoScreen" component={VideoScreen} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="Home"
+            component={AuthGate}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="NativeControls"
+            component={NativeControlsScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="JSControls"
+            component={JSControlsScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="Downloads"
+            component={DownloadsScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="Playlist"
+            component={PlaylistScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="Otp"
+            component={Otp}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="DevicesScreen"
+            component={DevicesScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="GroupDetail"
+            component={GroupDetail}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="PlaylistDetail"
+            component={PlaylistDetail}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="VideoScreen"
+            component={VideoScreen}
+            options={{headerShown: false}}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NetworkProvider>
