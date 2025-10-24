@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {
   FlatList,
   RefreshControl,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -30,8 +29,8 @@ export default function HomeGroup(
 
   const {id, title} = props.route.params;
 
-  const CARD_MIN_WIDTH = 280; // kartochka uchun optimal minimal o'lcham
-  const SPACING = 12; // kartalar orasidagi bo‘shliq
+  const CARD_MIN_WIDTH = 280;
+  const SPACING = 12;
   const numColumns = Math.max(
     1,
     Math.floor(width / (CARD_MIN_WIDTH + SPACING)),
@@ -51,8 +50,8 @@ export default function HomeGroup(
         params: {groupId: id},
       });
 
-      
-      
+
+
       console.log(res.data);
 
       setVideoData(res.data);

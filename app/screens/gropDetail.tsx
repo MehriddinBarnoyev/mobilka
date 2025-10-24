@@ -8,7 +8,6 @@ import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-naviga
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../components/core/header';
 import { RootStackParamList } from '../../type';
-import { useSecurity } from '../../hooks/useSecurity';
 
 type Video = {
     id: number;
@@ -36,7 +35,6 @@ export function GroupDetail() {
     const { top } = useSafeAreaInsets();
     const { width } = useWindowDimensions();
     const { title, group } = route.params;
-    const { isSecured } = useSecurity();
 
     const SPACING = width > 768 ? 16 : 12;
     const items: Item[] = [

@@ -84,7 +84,7 @@ export default function DevicesScreen(): JSX.Element {
 
     const { isSecured, setIsSecured } = useSecurity();
 
-    // Check if navigated from Account page
+    // Check if navigated from Page page
     const fromAccount = (route.params as { fromAccount?: boolean })?.fromAccount || false;
     console.log(route.params, 'route.params');
 
@@ -305,7 +305,7 @@ export default function DevicesScreen(): JSX.Element {
     };
 
     const Footer = (): JSX.Element | null => {
-        // Hide the "Davom etish" button if navigated from Account
+        // Hide the "Davom etish" button if navigated from Page
         if (fromAccount) {
             return null;
         }

@@ -1,5 +1,3 @@
-// types/User.ts
-
 export interface UserResponse {
   createdBy: string;
   createdDate: string; // ISO date string

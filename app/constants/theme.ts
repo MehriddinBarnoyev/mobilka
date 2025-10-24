@@ -1,0 +1,83 @@
+export const COLORS = {
+  primary: "#1ed488",
+  primaryBlue: "#2463EB",
+  primaryBlueSoft: "#E9F0FF",
+  destructive: "#DC3545",
+  background: "#f1f5f9",
+  backgroundAlt: "#FAFAFF",
+  surface: "#ffffff",
+  text: {
+    primary: "#1A1A1A",
+    ink: "#0B1020",
+    secondary: "#475569",
+    sub: "#667085",
+    tertiary: "#666666",
+    muted: "#888888",
+  },
+  border: "#E5E5E5",
+  line: "#E8ECF3",
+  skeleton: "#e2e8f0",
+  overlay: "rgba(255, 255, 255, 0.8)",
+  success: "#16A34A",
+  successSoft: "#EAF7EE",
+  error: "#E11D48",
+  errorSoft: "#FFE9EE",
+  warning: "#F59E0B",
+  warningSoft: "#FFF7E6",
+  info: "#3B82F6",
+  slateSoft: "#F5F7FB",
+  KEYPAD_BG: "#0b540f",
+  TEXT_PRIMARY: undefined,
+  ICON: undefined,
+  PLACEHOLDER: undefined,
+  INPUT_BG: undefined,
+  BORDER_ACTIVE: undefined,
+  STRENGTH_EMPTY: undefined,
+  STRENGTH_WEAK: undefined,
+  STRENGTH_GOOD: undefined,
+  STRENGTH_STRONG: undefined,
+  TEXT_SECONDARY: undefined,
+}
+
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+}
+
+export const FONT_SIZES = {
+  xs: 12,
+  sm: 13,
+  base: 14,
+  lg: 15,
+  xl: 16,
+  "2xl": 18,
+  "3xl": 24,
+  "4xl": 28,
+  "5xl": 32,
+}
+
+export const BORDER_RADIUS = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 18,
+  full: 50,
+}
+
+export const TAG_COLORS = [
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#96CEB4",
+  "#FECA57",
+  "#FF9FF3",
+  "#54A0FF",
+  "#5F27CD",
+  "#00D2D3",
+  "#FF6348",
+]
