@@ -4,7 +4,6 @@ import {
   Text,
   Button,
   Linking,
-  ActivityIndicator,
   StyleSheet,
   Platform,
 } from 'react-native';
@@ -94,7 +93,7 @@ const AppContent = () => {
   return (
     <NetworkProvider>
       <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator initialRouteName="Home">
+        <Stack.Navigator initialRouteName="Page">
           <Stack.Screen
             name="Home"
             component={AuthGate}

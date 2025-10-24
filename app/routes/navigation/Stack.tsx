@@ -16,9 +16,8 @@ import Offerta from '../../screens/Offerta';
 import HomeGroup from '../screen/GroupsScreen';
 import MyDownloadsScreen from '../../screens/MyDownloadsScreen';
 import SearchedVideos from '../../screens/SearchedVideos';
-import CreatePinCode from '../../screens/CreatePinCode';
-import ChangePasswordForce from '../../screens/ChangePasswordForce';
-import DevicesScreen from '../../screens/DevicesScreen';
+import CreatePinCode from '../../screens/createPin/page';
+import ChangePasswordForce from '../../screens/ChangePinForce/page';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -70,7 +69,7 @@ export default function StackScreen() {
         component={ChangePasswordForce}
         options={{headerShown: false}}
       />
-      
+
     </Stack.Navigator>
   );
 }

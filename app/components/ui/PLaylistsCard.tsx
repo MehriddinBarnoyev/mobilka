@@ -14,7 +14,7 @@ interface PLaylistProps{
 
 const PlaylistCard: React.FC<PLaylistProps> = ({ data, numColumns, onPress }) => {
     // Calculate card width based on number of columns for responsive layout
-    const cardWidth = numColumns > 1 ? '100%' : 280; // Match CARD_MIN_WIDTH from Home.tsx
+    const cardWidth = numColumns > 1 ? '100%' : 280; // Match CARD_MIN_WIDTH from Page.tsx
 
     return (
         <TouchableOpacity
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: '#ffffff',
         borderRadius: 8,
-        margin: 6, // Half of SPACING (12 / 2) to match Home.tsx spacing
+        margin: 6, // Half of SPACING (12 / 2) to match Page.tsx spacing
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
